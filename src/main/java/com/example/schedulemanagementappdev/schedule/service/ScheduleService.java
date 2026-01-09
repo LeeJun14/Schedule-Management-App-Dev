@@ -1,0 +1,87 @@
+package com.example.schedulemanagementappdev.schedule.service;
+
+import com.example.schedulemanagementappdev.comment.entity.Comment;
+import com.example.schedulemanagementappdev.schedule.dto.*;
+import com.example.schedulemanagementappdev.schedule.entity.Schedule;
+import com.example.schedulemanagementappdev.schedule.exception.ScheduleNotFoundException;
+import com.example.schedulemanagementappdev.schedule.repository.ScheduleRepository;
+import com.example.schedulemanagementappdev.user.entity.User;
+import com.example.schedulemanagementappdev.user.exception.UserSystemException;
+import com.example.schedulemanagementappdev.user.exception.UserUnauthorizedException;
+import com.example.schedulemanagementappdev.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ScheduleService {
+    private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
+
+    // 일정 생성
+    @Transactional
+    public ScheduleCreateResponse save(Long userId, ScheduleCreateRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserSystemException("시스템 오류가 발생했습니다.")
+        );
+        Schedule schedule = new Schedule(user, request.getTitle(), request.getContent());
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+        return new ScheduleCreateResponse(savedSchedule.getScheduleId(), savedSchedule.getUser().getUserName(), savedSchedule.getTitle(), savedSchedule.getContent(), savedSchedule.getCreatedAt());
+    }
+
+    // 일정 전체 조회
+    @Transactional(readOnly = true)
+    public List<ScheduleGetResponse> findAll() {
+        List<Schedule> schedules = scheduleRepository.findAll();
+        List<ScheduleGetResponse> dtos = new ArrayList<>();
+        for (Schedule schedule : schedules) {
+            ScheduleGetResponse dto =  new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
+        }
+        return dtos;
+    }
+
+    // 일정 단건 조회 (추후 ScheduleGetResponse 생성자 추가하여 comment 리스트도 함께 리턴)
+    @Transactional(readOnly = true)
+    public ScheduleGetResponse findOne(Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
+        );
+        return new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
+    }
+
+    // 일정 수정
+    @Transactional
+    public ScheduleUpdateResponse update(Long userId, Long scheduleId, ScheduleUpdateRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserSystemException("시스템 오류가 발생했습니다.")
+        );
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
+        );
+        if(user.getUserId() != schedule.getUser().getUserId()) {
+            throw new UserUnauthorizedException("해당 일정을 수정할 수 있는 권한이 없습니다.");
+        }
+        schedule.update(request.getTitle(), request.getContent());
+        return new ScheduleUpdateResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
+    }
+
+    // 일정 삭제
+    @Transactional
+    public void delete(Long userId, Long scheduleId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserSystemException("시스템 오류가 발생했습니다.")
+        );
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
+        );
+        if(user.getUserId() != schedule.getUser().getUserId()) {
+            throw new UserUnauthorizedException("해당 일정을 삭제할 수 있는 권한이 없습니다.");
+        }
+        scheduleRepository.delete(schedule);
+    }
+}

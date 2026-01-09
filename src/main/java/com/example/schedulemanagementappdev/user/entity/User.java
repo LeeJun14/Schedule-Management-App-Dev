@@ -1,6 +1,6 @@
 package com.example.schedulemanagementappdev.user.entity;
 
-import com.example.schedulemanagementappdev.BaseEntity;
+import com.example.schedulemanagementappdev.config.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

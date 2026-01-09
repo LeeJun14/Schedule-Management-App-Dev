@@ -1,4 +1,4 @@
-package com.example.schedulemanagementappdev;
+package com.example.schedulemanagementappdev.config;
 
 import jakarta.persistence.*;
 import lombok.Getter;

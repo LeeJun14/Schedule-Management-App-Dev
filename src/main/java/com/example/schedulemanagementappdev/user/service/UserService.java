@@ -1,5 +1,6 @@
 package com.example.schedulemanagementappdev.user.service;
 
+import com.example.schedulemanagementappdev.config.PasswordEncoder;
 import com.example.schedulemanagementappdev.user.dto.*;
 import com.example.schedulemanagementappdev.user.entity.User;
 import com.example.schedulemanagementappdev.user.exception.UserBadRequestException;
@@ -18,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 회원가입
     @Transactional
@@ -25,8 +27,8 @@ public class UserService {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new UserBadRequestException("현재 사용 중인 이메일 입니다.");
         }
-
-        User user = new User(request.getEmail(), request.getPassword(), request.getUserName());
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        User user = new User(request.getEmail(), encodedPassword, request.getUserName());
         User savedUser = userRepository.save(user);
         return new UserSignupResponse(savedUser.getUserId(),savedUser.getEmail(), savedUser.getUserName(),savedUser.getCreatedAt());
     }
@@ -34,9 +36,12 @@ public class UserService {
     // 로그인
     @Transactional
     public SessionUser login(@Valid UserLoginRequest request) {
-        User user = userRepository.findByEmailAndPassword(request.getEmail(), request.getPassword()).orElseThrow(
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new UserBadRequestException("이메일 또는 비밀번호가 일치하지 않습니다.")
         );
+        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserBadRequestException("이메일 또는 비밀번호가 일치하지 않습니다.");
+        }
         return new SessionUser(user.getUserId(), user.getEmail(), user.getUserName());
     }
 
