@@ -6,6 +6,7 @@ import com.example.schedulemanagementappdev.user.dto.SessionUser;
 import com.example.schedulemanagementappdev.user.exception.UserUnauthorizedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +29,8 @@ public class ScheduleController {
 
     // 일정 전체 조회
     @GetMapping("/schedules")
-    public ResponseEntity<List<ScheduleGetResponse>> getAll() {
-        return ResponseEntity.ok(scheduleService.findAll());
+    public ResponseEntity<Page<ScheduleGetResponse>> getAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(scheduleService.findAll(page, size));
     }
 
     // 일정 단건 조회
@@ -46,7 +47,8 @@ public class ScheduleController {
         }
         return ResponseEntity.ok(scheduleService.update(sessionUser.getUserId(), scheduleId, request));
     }
-
+    
+    // 일정 삭제
     @DeleteMapping("/schedules/{scheduleId}")
     public ResponseEntity<Void> delete(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @PathVariable Long scheduleId) {
         if(sessionUser == null){

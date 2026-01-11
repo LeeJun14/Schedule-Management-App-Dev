@@ -12,10 +12,13 @@ import com.example.schedulemanagementappdev.user.exception.UserSystemException;
 import com.example.schedulemanagementappdev.user.exception.UserUnauthorizedException;
 import com.example.schedulemanagementappdev.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,17 +42,14 @@ public class ScheduleService {
 
     // 일정 전체 조회
     @Transactional(readOnly = true)
-    public List<ScheduleGetResponse> findAll() {
-        List<Schedule> schedules = scheduleRepository.findAll();
-        List<ScheduleGetResponse> dtos = new ArrayList<>();
-        for (Schedule schedule : schedules) {
-            ScheduleGetResponse dto =  new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
-            dtos.add(dto);
-        }
-        return dtos;
+    public Page<ScheduleGetResponse> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        Page<Schedule> schedules = scheduleRepository.findAll(pageable);
+
+        return schedules.map(schedule -> new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt()));
     }
 
-    // 일정 단건 조회 (추후 ScheduleGetResponse 생성자 추가하여 comment 리스트도 함께 리턴)
+    // 일정 단건 조회
     @Transactional(readOnly = true)
     public ScheduleGetResponse findOne(Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
