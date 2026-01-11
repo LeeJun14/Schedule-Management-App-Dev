@@ -48,7 +48,7 @@ public class UserController {
 
     // 유저 수정
     @PatchMapping("/users")
-    public ResponseEntity<UserUpdateResponse> update(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @RequestBody UserUpdateRequest request){
+    public ResponseEntity<UserUpdateResponse> update(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @Valid @RequestBody UserUpdateRequest request){
         if(sessionUser == null){
             throw new UserUnauthorizedException("유저 수정 권한이 없습니다.");
         }

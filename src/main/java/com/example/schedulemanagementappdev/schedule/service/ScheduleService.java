@@ -1,6 +1,8 @@
 package com.example.schedulemanagementappdev.schedule.service;
 
+import com.example.schedulemanagementappdev.comment.dto.CommentGetResponse;
 import com.example.schedulemanagementappdev.comment.entity.Comment;
+import com.example.schedulemanagementappdev.comment.repository.CommentRepository;
 import com.example.schedulemanagementappdev.schedule.dto.*;
 import com.example.schedulemanagementappdev.schedule.entity.Schedule;
 import com.example.schedulemanagementappdev.schedule.exception.ScheduleNotFoundException;
@@ -10,18 +12,19 @@ import com.example.schedulemanagementappdev.user.exception.UserSystemException;
 import com.example.schedulemanagementappdev.user.exception.UserUnauthorizedException;
 import com.example.schedulemanagementappdev.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     // 일정 생성
     @Transactional
@@ -41,6 +44,7 @@ public class ScheduleService {
         List<ScheduleGetResponse> dtos = new ArrayList<>();
         for (Schedule schedule : schedules) {
             ScheduleGetResponse dto =  new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
+            dtos.add(dto);
         }
         return dtos;
     }
@@ -51,7 +55,9 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
         );
-        return new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
+        List<Comment> comments = commentRepository.findByScheduleScheduleId(scheduleId);
+        List<CommentGetResponse> responses = comments.stream().map(comment -> new CommentGetResponse(comment.getCommentId(), comment.getContent(), comment.getUser().getUserName(), comment.getCreatedAt(), comment.getModifiedAt())).toList();
+        return new ScheduleGetResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt(), responses);
     }
 
     // 일정 수정
@@ -63,7 +69,7 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
         );
-        if(user.getUserId() != schedule.getUser().getUserId()) {
+        if(!Objects.equals(user.getUserId(), schedule.getUser().getUserId())) {
             throw new UserUnauthorizedException("해당 일정을 수정할 수 있는 권한이 없습니다.");
         }
         schedule.update(request.getTitle(), request.getContent());

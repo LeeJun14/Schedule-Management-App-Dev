@@ -4,6 +4,7 @@ import com.example.schedulemanagementappdev.schedule.dto.*;
 import com.example.schedulemanagementappdev.schedule.service.ScheduleService;
 import com.example.schedulemanagementappdev.user.dto.SessionUser;
 import com.example.schedulemanagementappdev.user.exception.UserUnauthorizedException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class ScheduleController {
 
     // 일정 생성
     @PostMapping("/schedules")
-    public ResponseEntity<ScheduleCreateResponse> create(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @RequestBody ScheduleCreateRequest request) {
+    public ResponseEntity<ScheduleCreateResponse> create(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @Valid @RequestBody ScheduleCreateRequest request) {
         if(sessionUser == null){
             throw new UserUnauthorizedException("로그인이 필요합니다.");
         }
@@ -26,20 +27,20 @@ public class ScheduleController {
     }
 
     // 일정 전체 조회
-    @GetMapping("/schdules")
+    @GetMapping("/schedules")
     public ResponseEntity<List<ScheduleGetResponse>> getAll() {
         return ResponseEntity.ok(scheduleService.findAll());
     }
 
     // 일정 단건 조회
-    @GetMapping("/schedule/{scheduleId}")
+    @GetMapping("/schedules/{scheduleId}")
     public ResponseEntity<ScheduleGetResponse> getOne(@PathVariable Long scheduleId) {
         return ResponseEntity.ok(scheduleService.findOne(scheduleId));
     }
 
     // 일정 수정
     @PatchMapping("/schedules/{scheduleId}")
-    public ResponseEntity<ScheduleUpdateResponse> update(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @PathVariable Long scheduleId, @RequestBody ScheduleUpdateRequest request) {
+    public ResponseEntity<ScheduleUpdateResponse> update(@SessionAttribute(name = "user", required = false) SessionUser sessionUser, @PathVariable Long scheduleId, @Valid @RequestBody ScheduleUpdateRequest request) {
         if(sessionUser == null){
             throw new UserUnauthorizedException("로그인이 필요합니다.");
         }

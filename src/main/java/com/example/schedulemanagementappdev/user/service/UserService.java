@@ -27,6 +27,9 @@ public class UserService {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new UserBadRequestException("현재 사용 중인 이메일 입니다.");
         }
+        if(userRepository.existsByUserName(request.getUserName())) {
+            throw new UserBadRequestException("현재 사용 중인 이름입니다.");
+        }
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User user = new User(request.getEmail(), encodedPassword, request.getUserName());
         User savedUser = userRepository.save(user);
@@ -72,11 +75,11 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new UserSystemException("시스템 오류가 발생했습니다.")
         );
-        boolean existence = userRepository.existsByUserName(user.getUserName());
+        boolean existence = userRepository.existsByUserName(request.getUserName());
         if (existence) {
             throw new UserBadRequestException("이미 존재하는 유저명입니다.");
         }
-        user.update(request.getUsername());
+        user.update(request.getUserName());
         return new UserUpdateResponse(user.getUserId(), user.getEmail(), user.getUserName(), user.getModifiedAt());
     }
 
