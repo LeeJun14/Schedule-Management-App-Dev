@@ -17,9 +17,6 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    // Mapping URL에 맞춰 README 파일 API 명세 수정 필요
-    // DTO Validation 검증 추가하여 엔티티 검증 보완 예정
-
     // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<UserSignupResponse> signup(@Valid @RequestBody UserSignupRequest request) {

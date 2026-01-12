@@ -1,10 +1,12 @@
 package com.example.schedulemanagementappdev.comment.dto;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@JsonPropertyOrder({"commentId", "userName", "content", "createdAt", "modifiedAt"})
 public class CommentGetResponse {
     private final Long commentId;
     private final String content;

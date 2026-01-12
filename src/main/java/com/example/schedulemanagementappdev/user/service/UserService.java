@@ -28,12 +28,12 @@ public class UserService {
             throw new UserBadRequestException("현재 사용 중인 이메일 입니다.");
         }
         if(userRepository.existsByUserName(request.getUserName())) {
-            throw new UserBadRequestException("현재 사용 중인 이름입니다.");
+            throw new UserBadRequestException("현재 사용 중인 유저명입니다.");
         }
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User user = new User(request.getEmail(), encodedPassword, request.getUserName());
         User savedUser = userRepository.save(user);
-        return new UserSignupResponse(savedUser.getUserId(),savedUser.getEmail(), savedUser.getUserName(),savedUser.getCreatedAt());
+        return new UserSignupResponse(savedUser.getUserId(), savedUser.getUserName(),savedUser.getCreatedAt());
     }
 
     // 로그인
@@ -54,7 +54,7 @@ public class UserService {
         List<User> users = userRepository.findAll();
         List<UserGetResponse> dtos = new ArrayList<>();
         for (User user : users) {
-            UserGetResponse dto = new UserGetResponse(user.getUserId(), user.getEmail(), user.getUserName());
+            UserGetResponse dto = new UserGetResponse(user.getUserId(), user.getUserName(), user.getCreatedAt());
             dtos.add(dto);
         }
         return dtos;
@@ -64,9 +64,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserGetResponse findOne(String userName) {
         User user = userRepository.findByUserName(userName).orElseThrow(
-                () -> new UserNotFoundException("해당 이름의 유저는 존재하지 않습니다.")
+                () -> new UserNotFoundException("해당 유저는 존재하지 않습니다.")
         );
-        return new UserGetResponse(user.getUserId(), user.getEmail(), user.getUserName());
+        return new UserGetResponse(user.getUserId(), user.getUserName(), user.getCreatedAt());
     }
 
     // 유저 수정
@@ -80,7 +80,7 @@ public class UserService {
             throw new UserBadRequestException("이미 존재하는 유저명입니다.");
         }
         user.update(request.getUserName());
-        return new UserUpdateResponse(user.getUserId(), user.getEmail(), user.getUserName(), user.getModifiedAt());
+        return new UserUpdateResponse(user.getUserId(), user.getUserName(), user.getModifiedAt());
     }
 
     // 유저 삭제

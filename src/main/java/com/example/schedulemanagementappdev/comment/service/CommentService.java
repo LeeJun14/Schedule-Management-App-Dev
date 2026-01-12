@@ -37,7 +37,7 @@ public class CommentService {
         );
         Comment comment = new Comment(user, schedule, request.getContent());
         Comment savedComment = commentRepository.save(comment);
-        return new CommentCreateResponse(savedComment.getCommentId(), savedComment.getUser().getUserName(),savedComment.getSchedule().getScheduleId(), savedComment.getCreatedAt(), savedComment.getModifiedAt());
+        return new CommentCreateResponse(savedComment.getSchedule().getScheduleId(), savedComment.getCommentId(), savedComment.getUser().getUserName(), savedComment.getContent(), savedComment.getCreatedAt());
     }
 
     // 댓글 전체 조회

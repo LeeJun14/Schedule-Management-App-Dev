@@ -70,7 +70,7 @@ public class ScheduleService {
                 () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
         );
         if(!Objects.equals(user.getUserId(), schedule.getUser().getUserId())) {
-            throw new UserUnauthorizedException("해당 일정을 수정할 수 있는 권한이 없습니다.");
+            throw new UserUnauthorizedException("해당 일정의 수정 권한이 없습니다.");
         }
         schedule.update(request.getTitle(), request.getContent());
         return new ScheduleUpdateResponse(schedule.getScheduleId(), schedule.getUser().getUserName(), schedule.getTitle(), schedule.getContent(), schedule.getCreatedAt(), schedule.getModifiedAt());
@@ -86,7 +86,7 @@ public class ScheduleService {
                 () -> new ScheduleNotFoundException("존재하지 않는 일정입니다.")
         );
         if(user.getUserId() != schedule.getUser().getUserId()) {
-            throw new UserUnauthorizedException("해당 일정을 삭제할 수 있는 권한이 없습니다.");
+            throw new UserUnauthorizedException("해당 일정의 삭제 권한이 없습니다.");
         }
         scheduleRepository.delete(schedule);
     }
